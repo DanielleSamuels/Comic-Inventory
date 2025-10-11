@@ -1,0 +1,56 @@
+package org.comics.library.controller;
+
+import org.comics.library.model.Creator;
+import org.comics.library.service.CreatorService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping(value="/creator")
+public class CreatorController {
+    @Autowired
+    CreatorService creatorService;
+
+    @Autowired
+    MessageSource messages;
+
+    // GET
+    @RequestMapping(method = RequestMethod.GET)
+    public List<Creator> getAllCreators() {
+        return creatorService.getAllCreators();
+    }
+
+    @RequestMapping(value="/{creatorId}", method = RequestMethod.GET)
+    public ResponseEntity<Optional<Creator>> getCreatorById(@PathVariable("creatorId") Long creatorId) {
+        Optional<Creator> creator = creatorService.getCreatorById(creatorId);
+        if(creator.isEmpty()) {
+            throw new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "creator", creatorId));
+        }
+        return ResponseEntity.ok(creator);
+    }
+
+    // POST/add
+    @PostMapping
+    public ResponseEntity<Creator> addCreator(@RequestBody Creator creator) {
+        return ResponseEntity.ok(creatorService.addCreator(creator));
+    }
+
+    // PUT/update
+    @PutMapping
+    public ResponseEntity<Creator> updateCreator(@RequestBody Creator creator) {
+        return ResponseEntity.ok(creatorService.updateCreator(creator));
+    }
+
+    // DELETE
+    @DeleteMapping(value="/{creatorId}")
+    public ResponseEntity<String> deleteCreator(@PathVariable("creatorId") Long creatorId) {
+        if(!creatorService.deleteCreator(creatorId)) {
+            throw new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "creator", creatorId));
+        }
+        return ResponseEntity.ok(String.format(messages.getMessage("general.delete.message", null, null), "Creator", creatorId));
+    }
+}

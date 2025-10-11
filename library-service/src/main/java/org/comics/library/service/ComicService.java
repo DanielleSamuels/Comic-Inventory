@@ -1,0 +1,65 @@
+package org.comics.library.service;
+
+import org.comics.library.model.Comic;
+import org.comics.library.model.Series;
+import org.comics.library.model.dto.ComicDTO;
+import org.comics.library.model.dto.SeriesDTO;
+import org.comics.library.repo.ComicRepository;
+import org.comics.library.repo.CreatorRepository;
+import org.comics.library.repo.SeriesRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class ComicService {
+    @Autowired
+    ComicRepository comicRepo;
+
+    // Add
+    public Comic addComic(Comic comic) {
+        return comicRepo.save(comic);
+    }
+
+    // Get
+    public List<Comic> getAllComics() { return comicRepo.findAll(); }
+
+    public Optional<Comic> getComicById(Long id) { return comicRepo.findById(id); }
+
+    // Update
+    public Comic updateComic(Comic comic) { return comicRepo.save(comic); }
+
+    // Delete
+    public Boolean deleteComic(Long id) {
+        if (!comicRepo.existsById(id)) {
+            return false;
+        }
+        comicRepo.deleteById(id);
+        return true;
+    }
+
+    // Other
+    public List<ComicDTO> listComicToListDTO(List<Comic> comics) {
+        if (comics == null || comics.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<ComicDTO> comicDTOList = new ArrayList<>();
+
+        for(Comic comic : comics) {
+            ComicDTO comicDTO = new ComicDTO(comic);
+            comicDTOList.add(comicDTO);
+        }
+
+        return comicDTOList;
+    }
+
+    public Long getNumberOfIssuesForSeriesById(Long seriesId) {
+        return comicRepo.countBySeries_SeriesIdAndIsVariantFalse(seriesId);
+    }
+}

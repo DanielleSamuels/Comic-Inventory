@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "pass"
+
+  config-server:
+    build:
+      context: ../config-server
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: native
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8089/actuator/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  library-service:
+    build:
+      context: ../library-service
+      dockerfile: Dockerfile
+    depends_on:
+      config-server:
+        condition: service_healthy
+      db:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: "dev"
+      SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+    ports:
+      - "8081:8080"
+
+  stock-service:
+    build:
+      context: ../stock-service
+      dockerfile: Dockerfile
+    depends_on:
+      config-server:
+        condition: service_healthy
+      db:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: "dev"
+      SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+    ports:
+      - "8082:8080"

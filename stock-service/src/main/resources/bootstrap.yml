@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: stock-service
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        max-attempts: 12
+        max-interval: 2000
+
