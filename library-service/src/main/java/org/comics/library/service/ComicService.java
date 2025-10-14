@@ -62,4 +62,8 @@ public class ComicService {
     public Long getNumberOfIssuesForSeriesById(Long seriesId) {
         return comicRepo.countBySeries_SeriesIdAndIsVariantFalse(seriesId);
     }
+
+    public Optional<Comic> getComicObj(Long id) {
+        return comicRepo.findById(id);
+    }
 }

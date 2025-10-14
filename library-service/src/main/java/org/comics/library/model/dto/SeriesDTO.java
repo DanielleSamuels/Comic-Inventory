@@ -14,13 +14,11 @@ public class SeriesDTO {
     private String seriesName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer volume;
-    private Long numberOfIssues;
 
-    public SeriesDTO(Series s, Long noi) {
+    public SeriesDTO(Series s) {
         seriesId = s.getSeriesId();
         publisher = s.getPublisher();
         seriesName = s.getSeriesName();
         volume = s.getVolume();
-        numberOfIssues = noi;
     }
 }

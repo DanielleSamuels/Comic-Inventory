@@ -8,6 +8,14 @@ services:
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "pass"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
 
   config-server:
     build:
@@ -31,8 +39,9 @@ services:
       config-server:
         condition: service_healthy
       db:
-        condition: service_started
+        condition: service_healthy
     environment:
+      #SPRING_PROFILES_ACTIVE: "prod"
       SPRING_PROFILES_ACTIVE: "dev"
       SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
@@ -51,8 +60,9 @@ services:
       config-server:
         condition: service_healthy
       db:
-        condition: service_started
+        condition: service_healthy
     environment:
+      #SPRING_PROFILES_ACTIVE: "prod"
       SPRING_PROFILES_ACTIVE: "dev"
       SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
@@ -62,3 +72,7 @@ services:
           memory: 768m
     ports:
       - "8082:8080"
+
+volumes:
+  dbdata:
+

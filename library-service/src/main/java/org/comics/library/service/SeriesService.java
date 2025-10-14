@@ -46,8 +46,8 @@ public class SeriesService {
 
     public SeriesDTO getSeriesDTO(Series s) {
         if(seriesRepo.existsById(s.getSeriesId())) {
-            Long numIssues = comicRepo.countBySeries_SeriesIdAndIsVariantFalse(s.getSeriesId());
-            SeriesDTO sDTO = new SeriesDTO(s, numIssues);
+            SeriesDTO sDTO = new SeriesDTO(s);
+            return sDTO;
         }
         return null;
     }

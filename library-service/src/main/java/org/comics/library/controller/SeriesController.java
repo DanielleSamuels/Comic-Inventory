@@ -29,6 +29,7 @@ public class SeriesController {
         if(seriesDTOList == null || seriesDTOList.isEmpty()) {
             throw new IllegalArgumentException(String.format(messages.getMessage("general.findAll.error.message", null, null), "Series"));
         }
+
         return seriesDTOList;
     }
 
@@ -47,8 +48,8 @@ public class SeriesController {
     // POST/add
     @PostMapping
     public ResponseEntity<SeriesDTO> addSeries(@RequestBody Series series) {
-        SeriesDTO seriesDTO = seriesService.getSeriesDTO(series);
         seriesService.addSeries(series);
+        SeriesDTO seriesDTO = seriesService.getSeriesDTO(series);
         return ResponseEntity.ok(seriesDTO);
     }
 

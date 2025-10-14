@@ -1,12 +1,17 @@
 package org.comics.library.controller;
 
 import org.comics.library.model.Comic;
+import org.comics.library.model.ComicCreator;
+import org.comics.library.model.Creator;
 import org.comics.library.model.dto.ComicDTO;
 import org.comics.library.model.utils.Response;
+import org.comics.library.repo.ComicCreatorRepository;
 import org.comics.library.service.ComicService;
+import org.comics.library.service.CreatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +23,13 @@ public class ComicController {
     ComicService comicService;
 
     @Autowired
+    CreatorService creatorService;
+
+    @Autowired
     MessageSource messages;
+
+    @Autowired
+    ComicCreatorRepository comicCreatorRepo;
 
     // GET
     @RequestMapping(method = RequestMethod.GET)
@@ -47,6 +58,30 @@ public class ComicController {
     public ResponseEntity<ComicDTO> addComic(@RequestBody Comic comic) {
         return ResponseEntity.ok(new ComicDTO(comicService.addComic(comic)));
     }
+
+    @PostMapping("{comicId}/credit/{creatorId}/role/{role}")
+    ResponseEntity<String> addCredit(@PathVariable("comicId") Long comicId, @PathVariable("creatorId") Long creatorId, @PathVariable("role") String role) {
+        Optional<Comic> comicOpt = comicService.getComicObj(comicId);
+        Optional<Creator> creatorOpt = creatorService.getCreatorById(creatorId);
+
+        Comic comic = comicOpt.orElseThrow(
+                () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "comic", comicId))
+        );
+
+        Creator creator = creatorOpt.orElseThrow(
+                () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "creator", creatorId))
+        );
+
+
+        ComicCreator cc = new ComicCreator();
+        cc.setComic(comic);
+        cc.setCreator(creator);
+        cc.setRole(role);
+
+        comicCreatorRepo.save(cc);
+        return ResponseEntity.ok("Creator Added to Comic");
+    }
+
 
     // PUT/update
     @PutMapping
