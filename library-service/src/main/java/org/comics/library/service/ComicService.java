@@ -1,8 +1,10 @@
 package org.comics.library.service;
 
 import org.comics.library.model.Comic;
+import org.comics.library.model.Creator;
 import org.comics.library.model.Series;
 import org.comics.library.model.dto.ComicDTO;
+import org.comics.library.model.dto.ComicRequest;
 import org.comics.library.model.dto.SeriesDTO;
 import org.comics.library.repo.ComicRepository;
 import org.comics.library.repo.CreatorRepository;
@@ -24,6 +26,25 @@ public class ComicService {
     // Add
     public Comic addComic(Comic comic) {
         return comicRepo.save(comic);
+    }
+
+    public Comic addComicRequest(ComicRequest comicRequest, Series series, Creator variantArtist) {
+        Comic comic = new Comic();
+        comic.setSeries(series);
+        comic.setTitle(comicRequest.getTitle());
+        comic.setIssue(comicRequest.getIssue());
+        comic.setReleaseDate(comicRequest.getReleaseDate());
+        comic.setCoverMonth(comicRequest.getCoverMonth());
+        comic.setCoverYear(comicRequest.getCoverYear());
+        comic.setCoverPrice(comicRequest.getCoverPrice());
+        comic.setUpc(comicRequest.getUpc());
+        comic.setIsVariant(comicRequest.getIsVariant());
+        comic.setVariantName(comicRequest.getVariantName());
+        comic.setVariantArtist(variantArtist);
+        comic.setIsIncentive(comicRequest.getIsIncentive());
+        comic.setIncentiveRatio(comicRequest.getIncentiveRatio());
+
+        return addComic(comic);
     }
 
     // Get

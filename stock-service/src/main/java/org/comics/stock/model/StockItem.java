@@ -43,10 +43,6 @@ public class StockItem {
     @Column(name = "for_sale", nullable = false)  // usually true unless item is not available for pre-order or if item has been pulled from shelves
     Boolean forSale;
 
-    @NotBlank
-    @Column(name = "is_back_issue", nullable = false)
-    Boolean isBackIssue;
-
     @Column(name = "item_notes")
     private String itemNotes;
 

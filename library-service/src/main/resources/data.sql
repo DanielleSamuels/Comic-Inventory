@@ -1,7 +1,8 @@
 --SERIES
 INSERT INTO series (series_name, volume, publisher)
 VALUES
-('Titans', 4, 'DC Comics');
+('Titans', 4, 'DC Comics')
+ON CONFLICT (series_name, volume, publisher) DO NOTHING;
 
 --CREATORS
 INSERT INTO creators (name, primary_role, active)

@@ -1,8 +1,8 @@
 --STOCK ITEMS
-INSERT INTO stock_items (comic_id, num_in_stock, num_ordered, num_reserved, list_price, for_sale, is_back_issue, item_notes, created_on, last_updated)
+INSERT INTO stock_items (comic_id, num_in_stock, num_ordered, num_reserved, list_price, for_sale, item_notes, created_on, last_updated)
 VALUES
-(1, 25, 5, 2, 3.99, TRUE, TRUE, 'NM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(1, 1, 0, 0, 1.00, TRUE, TRUE, 'Damaged', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+(1, 25, 5, 2, 3.99, TRUE, 'NM', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(1, 1, 0, 0, 1.00, TRUE, 'Damaged', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 
 --STOCK UPDATES

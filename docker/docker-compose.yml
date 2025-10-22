@@ -2,20 +2,20 @@ version: "3.9"
 
 services:
   db:
-    image: postgres:latest
-    ports:
-      - "5432:5432"
+    image: postgres:16
     environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "pass"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: app_${SPRING_PROFILES_ACTIVE:-dev}
     volumes:
-      - dbdata:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
+      - ${DB_VOLUME:-/var/lib/postgresql/data}  #prod/persistent = $env:DB_VOLUME="dbdata:/var/lib/postgresql/data"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 3s
-      retries: 30
+      retries: 40
+      start_period: 40s
 
   config-server:
     build:
@@ -26,9 +26,9 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: native
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8089/actuator/health" ]
-      interval: 5s
-      timeout: 3s
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8089/actuator/health"]
+      interval: "5s"
+      timeout: "3s"
       retries: 30
 
   library-service:
@@ -41,8 +41,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      #SPRING_PROFILES_ACTIVE: "prod"
-      SPRING_PROFILES_ACTIVE: "dev"
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
     deploy:
@@ -62,9 +61,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      #SPRING_PROFILES_ACTIVE: "prod"
-      SPRING_PROFILES_ACTIVE: "dev"
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/stock_dev"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "pass"
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
     deploy:
       resources:
@@ -75,4 +76,5 @@ services:
 
 volumes:
   dbdata:
+
 

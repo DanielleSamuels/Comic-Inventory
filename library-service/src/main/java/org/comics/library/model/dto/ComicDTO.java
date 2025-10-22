@@ -16,7 +16,7 @@ import java.util.Optional;
 @Getter @Setter
 public class ComicDTO {
     private Long comicId;
-    private Long seriesId;
+    private SeriesDTO series;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String title;
     private Integer issue;
@@ -46,7 +46,6 @@ public class ComicDTO {
         variantName = c.getVariantName();
         isIncentive = c.getIsIncentive();
         incentiveRatio = c.getIncentiveRatio();
-        seriesId = c.getSeries().getSeriesId();
 
         // combine month and year if possible
         if((c.getCoverMonth() != null) && (c.getCoverYear() != null)) {
@@ -70,6 +69,12 @@ public class ComicDTO {
                 CreditDTO ccDTO = new CreditDTO(cred);
                 credits.add(ccDTO);
             }
+        }
+
+        //series
+        if(c.getSeries() != null) {
+            Series s = c.getSeries();
+            series = new SeriesDTO(s);
         }
     }
 }

@@ -3,11 +3,14 @@ package org.comics.library.controller;
 import org.comics.library.model.Comic;
 import org.comics.library.model.ComicCreator;
 import org.comics.library.model.Creator;
+import org.comics.library.model.Series;
 import org.comics.library.model.dto.ComicDTO;
+import org.comics.library.model.dto.ComicRequest;
 import org.comics.library.model.utils.Response;
 import org.comics.library.repo.ComicCreatorRepository;
 import org.comics.library.service.ComicService;
 import org.comics.library.service.CreatorService;
+import org.comics.library.service.SeriesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,9 @@ public class ComicController {
 
     @Autowired
     CreatorService creatorService;
+
+    @Autowired
+    SeriesService seriesService;
 
     @Autowired
     MessageSource messages;
@@ -55,8 +61,25 @@ public class ComicController {
 
     // POST/add
     @PostMapping
-    public ResponseEntity<ComicDTO> addComic(@RequestBody Comic comic) {
-        return ResponseEntity.ok(new ComicDTO(comicService.addComic(comic)));
+    public ResponseEntity<ComicDTO> addComic(@RequestBody ComicRequest comicRequest) {
+        // add series
+        Optional<Series> seriesOpt = seriesService.getSeriesById(comicRequest.getSeriesId());
+        Series series = seriesOpt.orElseThrow(
+                () -> new IllegalArgumentException(String.format(messages.getMessage("comic.add.series.error.message", null, null)))
+        );
+
+        // add variant artist
+        Creator variantArtist;
+        if(comicRequest.getVariantArtistId() != null) {
+            Optional<Creator> creatorOpt = creatorService.getCreatorById(comicRequest.getVariantArtistId());
+            variantArtist = creatorOpt.orElseThrow(
+                    () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "creator", comicRequest.getVariantArtistId()))
+            );
+        } else {
+            variantArtist = null;
+        }
+
+        return ResponseEntity.ok(new ComicDTO(comicService.addComicRequest(comicRequest, series, variantArtist)));
     }
 
     @PostMapping("{comicId}/credit/{creatorId}/role/{role}")
