@@ -42,10 +42,10 @@ CREATE TABLE IF NOT EXISTS public.comics (
   is_incentive        BOOLEAN NOT NULL DEFAULT FALSE,
   incentive_ratio     TEXT,
   CONSTRAINT fk_comics_series
-    FOREIGN KEY (series_id) REFERENCES public.series(series_id),
-  CONSTRAINT fk_comics_variant_artist
-    FOREIGN KEY (variant_artist_id) REFERENCES public.creators(creator_id),
-  --CONSTRAINT uq_comics_upc UNIQUE (upc)
+    FOREIGN KEY (series_id) REFERENCES public.series(series_id)ON DELETE CASCADE,
+ CONSTRAINT fk_comics_variant_artist
+   FOREIGN KEY (variant_artist_id) REFERENCES public.creators(creator_id) ON DELETE SET NULL
+  --,CONSTRAINT uq_comics_upc UNIQUE (upc)
 );
 
 CREATE INDEX IF NOT EXISTS idx_comics_series_id ON public.comics(series_id);

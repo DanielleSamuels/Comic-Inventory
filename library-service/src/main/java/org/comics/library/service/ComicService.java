@@ -53,7 +53,23 @@ public class ComicService {
     public Optional<Comic> getComicById(Long id) { return comicRepo.findById(id); }
 
     // Update
-    public Comic updateComic(Comic comic) { return comicRepo.save(comic); }
+    public Comic updateComicRequest(ComicRequest comicRequest, Series series, Creator variantArtist, Comic comic) {
+        comic.setSeries(series);
+        comic.setTitle(comicRequest.getTitle());
+        comic.setIssue(comicRequest.getIssue());
+        comic.setReleaseDate(comicRequest.getReleaseDate());
+        comic.setCoverMonth(comicRequest.getCoverMonth());
+        comic.setCoverYear(comicRequest.getCoverYear());
+        comic.setCoverPrice(comicRequest.getCoverPrice());
+        comic.setUpc(comicRequest.getUpc());
+        comic.setIsVariant(comicRequest.getIsVariant());
+        comic.setVariantName(comicRequest.getVariantName());
+        comic.setVariantArtist(variantArtist);
+        comic.setIsIncentive(comicRequest.getIsIncentive());
+        comic.setIncentiveRatio(comicRequest.getIncentiveRatio());
+
+        return comicRepo.save(comic);
+    }
 
     // Delete
     public Boolean deleteComic(Long id) {

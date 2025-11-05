@@ -107,9 +107,33 @@ public class ComicController {
 
 
     // PUT/update
-    @PutMapping
-    public ResponseEntity<ComicDTO> updateComic(@RequestBody Comic comic) {
-        return ResponseEntity.ok(new ComicDTO(comicService.updateComic(comic)));
+    @PutMapping(value="/{comicId}")
+    public ResponseEntity<ComicDTO> updateComic(@PathVariable("comicId") Long comicId, @RequestBody ComicRequest comicRequest) {
+
+        // find comic
+        Optional<Comic> comicOpt = comicService.getComicObj(comicId);
+        Comic comic = comicOpt.orElseThrow(
+                () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "comic", comicId))
+        );
+
+        // find series
+        Optional<Series> seriesOpt = seriesService.getSeriesById(comicRequest.getSeriesId());
+        Series series = seriesOpt.orElseThrow(
+                () -> new IllegalArgumentException(String.format(messages.getMessage("comic.add.series.error.message", null, null)))
+        );
+
+        // find variantArtist if applicable
+        Creator variantArtist;
+        if(comicRequest.getVariantArtistId() != null) {
+            Optional<Creator> creatorOpt = creatorService.getCreatorById(comicRequest.getVariantArtistId());
+            variantArtist = creatorOpt.orElseThrow(
+                    () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "creator", comicRequest.getVariantArtistId()))
+            );
+        } else {
+            variantArtist = null;
+        }
+
+        return ResponseEntity.ok(new ComicDTO(comicService.updateComicRequest(comicRequest, series, variantArtist, comic)));
     }
 
     // DELETE

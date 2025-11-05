@@ -1,6 +1,7 @@
 package org.comics.stock.controller;
 
 import org.comics.stock.model.StockItem;
+import org.comics.stock.model.dto.StockItemAddRequest;
 import org.comics.stock.service.StockItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -35,8 +36,8 @@ public class StockItemController {
 
     // POST/add
     @PostMapping
-    public ResponseEntity<StockItem> addStockItem(@RequestBody StockItem stockItem) {
-        return ResponseEntity.ok(stockItemService.addStockItem(stockItem));
+    public ResponseEntity<StockItem> addStockItem(@RequestBody StockItemAddRequest stockItemRequest) {
+        return ResponseEntity.ok(stockItemService.addStockItemRequest(stockItemRequest));
     }
 
     // PUT/update

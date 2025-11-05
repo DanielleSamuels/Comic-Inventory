@@ -44,6 +44,7 @@ public class SeriesService {
         return true;
     }
 
+    // other
     public SeriesDTO getSeriesDTO(Series s) {
         if(seriesRepo.existsById(s.getSeriesId())) {
             SeriesDTO sDTO = new SeriesDTO(s);
@@ -64,5 +65,20 @@ public class SeriesService {
             seriesDTOList.add(seriesDTO);
         }
         return seriesDTOList;
+    }
+
+    public boolean seriesExists(Series series) {
+        Optional<Series> seriesOpt = seriesRepo.findBySeriesNameAndVolumeAndPublisherIgnoreCase(series.getSeriesName(), series.getVolume(), series.getPublisher());
+        if (seriesOpt.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean hasComics(Long seriesId) {
+        if(comicRepo.existsBySeries_SeriesId(seriesId)) {
+            return true;
+        }
+        return false;
     }
 }

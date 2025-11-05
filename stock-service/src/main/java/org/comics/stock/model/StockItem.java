@@ -37,11 +37,11 @@ public class StockItem {
 
     @DecimalMin("0.00")
     @Column(name = "list_price", precision = 10, scale = 2)  // usually same as cover price, unless back-issue, incentive cover, or rare/exclusive; if null assume cover price; if no coverPrice or listPrice, reject any sales
-    private BigDecimal list_price;
+    private BigDecimal listPrice;
 
     @NotBlank
     @Column(name = "for_sale", nullable = false)  // usually true unless item is not available for pre-order or if item has been pulled from shelves
-    Boolean forSale;
+    private Boolean forSale;
 
     @Column(name = "item_notes")
     private String itemNotes;

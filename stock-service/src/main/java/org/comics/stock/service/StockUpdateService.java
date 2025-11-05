@@ -3,10 +3,11 @@ package org.comics.stock.service;
 import org.comics.stock.model.StockItem;
 import org.comics.stock.model.StockUpdate;
 import org.comics.stock.model.dto.StockUpdateDTO;
+import org.comics.stock.model.dto.StockUpdateModificationRequest;
+import org.comics.stock.model.dto.StockUpdateCreateRequest;
 import org.comics.stock.repo.StockItemRepository;
 import org.comics.stock.repo.StockUpdateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -24,17 +25,27 @@ public class StockUpdateService {
     StockItemRepository stockItemRepo;
 
     // Add
-    public Boolean addStockUpdate(StockUpdate stockUpdate) {
-        StockItem item = stockUpdate.getStockItem();
+    public Boolean addStockUpdate(StockUpdateCreateRequest stockUpdateCreateRequest) {
+        // find item
+        StockItem item = stockItemRepo.getById(stockUpdateCreateRequest.getStockItemId());
+
+        // set given values
+        StockUpdate stockUpdate = new StockUpdate();
+        stockUpdate.setStockItem(item);
+        stockUpdate.setUpdateType(stockUpdateCreateRequest.getUpdateType());
+        stockUpdate.setQuantityDelta(stockUpdateCreateRequest.getQuantityDelta());
+        stockUpdate.setUpdateNotes(stockUpdateCreateRequest.getUpdateNotes());
+
+        // set calculated values
         Integer prevQty = item.getNumInStock();
-        Integer newQty = prevQty + stockUpdate.getQuantityDelta();
+        Integer newQty = prevQty + stockUpdateCreateRequest.getQuantityDelta();
         if(newQty < 0) {
             return false;
         }
-
         stockUpdate.setNewQuantity(newQty);
         stockUpdate.setPrevQuantity(prevQty);
         stockUpdate.setCreatedDate(Instant.now());
+
         stockUpdateRepo.save(stockUpdate);
 
         return true;
@@ -46,17 +57,14 @@ public class StockUpdateService {
     public Optional<StockUpdate> getStockUpdateById(Long id) { return stockUpdateRepo.findById(id); }
 
     // Update
-    public Boolean updateStockUpdate(StockUpdate newStockUpdate, StockUpdate oldStockUpdate) {
-        if(newStockUpdate.getStockItem() != oldStockUpdate.getStockItem() ||
-                newStockUpdate.getQuantityDelta() != oldStockUpdate.getQuantityDelta() ||
-                newStockUpdate.getPrevQuantity() != oldStockUpdate.getPrevQuantity() ||
-                newStockUpdate.getNewQuantity() != oldStockUpdate.getNewQuantity()
-        ) {
-            return false;
-        }
+    public StockUpdate updateStockUpdate(StockUpdateModificationRequest newStockUpdateModReq, StockUpdate stockUpdate) {
+        // update editable fields; keep everything else
+        stockUpdate.setUpdateType(newStockUpdateModReq.getUpdateType());
+        stockUpdate.setUpdateNotes(newStockUpdateModReq.getUpdateNotes());
 
-        stockUpdateRepo.save(newStockUpdate);
-        return true;
+        stockUpdateRepo.save(stockUpdate);
+
+        return stockUpdate;
     }
 
     // Delete

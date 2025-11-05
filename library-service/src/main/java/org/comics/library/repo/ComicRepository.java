@@ -11,6 +11,9 @@ public interface ComicRepository extends JpaRepository<Comic, Long> {
     List<Comic> findByTitleIgnoreCaseContaining(String title);
 
     @EntityGraph(attributePaths = {"series"})
+    boolean existsBySeries_SeriesId(Long seriesId);
+
+    @EntityGraph(attributePaths = {"series"})
     Long countBySeries_SeriesIdAndIsVariantFalse(Long seriesId);
 
     @EntityGraph(attributePaths = {

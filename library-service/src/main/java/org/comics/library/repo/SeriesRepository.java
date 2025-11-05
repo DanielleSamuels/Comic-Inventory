@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface SeriesRepository extends JpaRepository<Series, Long> {
 
     //List<Series> findBySeries_NameContainingIgnoreCaseAndVolume(String series_name, Integer volume);
+    Optional<Series> findBySeriesNameAndVolumeAndPublisherIgnoreCase(String seriesName, Integer volume, String publisher);
 
 }

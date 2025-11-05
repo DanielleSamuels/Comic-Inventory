@@ -2,6 +2,9 @@ package org.comics.stock.controller;
 
 import org.comics.stock.model.StockUpdate;
 import org.comics.stock.model.dto.StockUpdateDTO;
+import org.comics.stock.model.dto.StockUpdateModificationRequest;
+import org.comics.stock.model.dto.StockUpdateCreateRequest;
+import org.comics.stock.service.StockItemService;
 import org.comics.stock.service.StockUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -16,6 +19,9 @@ import java.util.Optional;
 public class StockUpdateController {
     @Autowired
     StockUpdateService stockUpdateService;
+
+    @Autowired
+    StockItemService stockItemService;
 
     @Autowired
     MessageSource messages;
@@ -43,28 +49,27 @@ public class StockUpdateController {
 
     // POST/add
     @PostMapping
-    public ResponseEntity<StockUpdateDTO> addStockUpdate(@RequestBody StockUpdate stockUpdate) {
-        if(!stockUpdateService.addStockUpdate(stockUpdate)) {
+    public ResponseEntity<String> addStockUpdate(@RequestBody StockUpdateCreateRequest stockUpdateCreateRequest) {
+        if(stockItemService.itemExists(stockUpdateCreateRequest.getStockItemId())) {
+            throw new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "stock item", stockUpdateCreateRequest.getStockItemId()));
+        }
+
+        if(!stockUpdateService.addStockUpdate(stockUpdateCreateRequest)) {
             throw new IllegalArgumentException(String.format(messages.getMessage("stock-update.add.error.message", null, null)));
         }
 
-        return ResponseEntity.ok(new StockUpdateDTO(stockUpdate));
+        return ResponseEntity.ok("Update added");
     }
 
     // PUT/update
-    @PutMapping
-    public ResponseEntity<StockUpdateDTO> updateStockUpdate(@RequestBody StockUpdate newStockUpdate) {
-        Long id = newStockUpdate.getStockUpdateId();
-        Optional<StockUpdate> oldStockUpdateOpt = stockUpdateService.getStockUpdateById(id);
+    @PutMapping(value="/{stockUpdateId}")
+    public ResponseEntity<StockUpdateDTO> updateStockUpdate(@PathVariable("stockUpdateId") Long stockUpdateId, @RequestBody StockUpdateModificationRequest newStockUpdateModReq) {
+        Optional<StockUpdate> oldStockUpdateOpt = stockUpdateService.getStockUpdateById(stockUpdateId);
         StockUpdate oldStockUpdate = oldStockUpdateOpt.orElseThrow(
-                () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "stock update", id))
+                () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "stock update", stockUpdateId))
         );
 
-        if(!stockUpdateService.updateStockUpdate(newStockUpdate, oldStockUpdate)) {
-            throw new IllegalArgumentException(String.format(messages.getMessage("stock-update.update.error.message", null, null)));
-        }
-
-        return ResponseEntity.ok(new StockUpdateDTO(newStockUpdate));
+        return ResponseEntity.ok(new StockUpdateDTO(stockUpdateService.updateStockUpdate(newStockUpdateModReq, oldStockUpdate)));
     }
 
     // DELETE

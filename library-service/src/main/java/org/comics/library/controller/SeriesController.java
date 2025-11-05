@@ -48,6 +48,9 @@ public class SeriesController {
     // POST/add
     @PostMapping
     public ResponseEntity<SeriesDTO> addSeries(@RequestBody Series series) {
+        if(seriesService.seriesExists(series)) {
+            throw new IllegalArgumentException(String.format(messages.getMessage("series.add.error.message", null, null)));
+        }
         seriesService.addSeries(series);
         SeriesDTO seriesDTO = seriesService.getSeriesDTO(series);
         return ResponseEntity.ok(seriesDTO);
@@ -64,9 +67,15 @@ public class SeriesController {
     // DELETE
     @DeleteMapping(value="/{seriesId}")
     public ResponseEntity<String> deleteSeries(@PathVariable("seriesId") Long seriesId) {
+        if(seriesService.hasComics(seriesId)) {
+
+            throw new IllegalArgumentException(String.format(messages.getMessage("series.delete.error.message", null, null), seriesId));
+        }
+
         if(!seriesService.deleteSeries(seriesId)) {
             throw new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "series", seriesId));
         }
+
         return ResponseEntity.ok(String.format(messages.getMessage("general.delete.message", null, null), "Series", seriesId));
     }
 }
