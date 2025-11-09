@@ -23,10 +23,30 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8089:8089"
-    environment:
-      SPRING_PROFILES_ACTIVE: native
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8089/actuator/health"]
+      interval: "5s"
+      timeout: "3s"
+      retries: 30
+  eureka-server:
+    build:
+      context: ../eureka-server
+      dockerfile: Dockerfile
+    depends_on:
+      config-server:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: eureka-server
+      SPRING_PROFILES_ACTIVE: dev
+      #SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8089"
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+      SERVER_PORT: "8070"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CONFIG: DEBUG
+    ports:
+      - "8070:8070"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8070/actuator/health"]
       interval: "5s"
       timeout: "3s"
       retries: 30
@@ -38,11 +58,18 @@ services:
     depends_on:
       config-server:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
       db:
         condition: service_healthy
     environment:
+      SPRING_APPLICATION_NAME: library-service
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
+      #SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8089"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8070/eureka/"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/app_dev"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "pass"
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
     deploy:
       resources:
@@ -58,12 +85,16 @@ services:
     depends_on:
       config-server:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
       db:
         condition: service_healthy
     environment:
+      SPRING_APPLICATION_NAME: stock-service
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_CLOUD_CONFIG_URI: "http://config-server:8089"
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/stock_dev"
+      #SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8089"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8070/eureka/"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/app_dev"
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "pass"
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"

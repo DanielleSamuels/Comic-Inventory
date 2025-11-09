@@ -15,7 +15,8 @@ VALUES
 ('Marie Javins', 'Editor-in-Chief', TRUE),
 ('Cully Hamner', 'Cover Artist', TRUE),
 ('Dan Mora', 'Cover Artist', TRUE),
-('Tom Taylor', 'Writer', TRUE);
+('Tom Taylor', 'Writer', TRUE)
+ON CONFLICT (name) DO NOTHING;
 
 --COMICS
 INSERT INTO comics (series_id, title, issue, release_date, cover_month, cover_year, cover_price, upc, is_variant, variant_name, variant_artist_id, is_incentive, incentive_ratio)
@@ -47,4 +48,5 @@ VALUES
 ((SELECT comic_id FROM comics WHERE upc='76194138022302021'), (SELECT creator_id FROM creators WHERE name='Marie Javins'), 'Editor-in-Chief'),
 ((SELECT comic_id FROM comics WHERE upc='76194138022302021'), (SELECT creator_id FROM creators WHERE name='Cully Hamner'), 'Cover Artist'),
 -- Titans Vol 4 #1 Cover E 1:25
-((SELECT comic_id FROM comics WHERE upc='76194138022300151'), (SELECT creator_id FROM creators WHERE name='Tom Taylor'), 'Writer');
+((SELECT comic_id FROM comics WHERE upc='76194138022300151'), (SELECT creator_id FROM creators WHERE name='Tom Taylor'), 'Writer')
+ON CONFLICT (comic_id, creator_id, role_on_issue) DO NOTHING;

@@ -8,8 +8,10 @@ CREATE TABLE IF NOT EXISTS public.series (
   publisher     TEXT NOT NULL
 );
 
-ALTER TABLE public.series
-  ADD CONSTRAINT uq_series_name_vol UNIQUE (series_name, volume, publisher);
+--ALTER TABLE public.series
+ -- ADD CONSTRAINT uq_series_name_vol UNIQUE (series_name, volume, publisher);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_series_name_vol_idx
+  ON public.series(series_name, volume, publisher);
 
 --CREATORS
 CREATE TABLE IF NOT EXISTS public.creators (
@@ -19,8 +21,11 @@ CREATE TABLE IF NOT EXISTS public.creators (
   active        BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-ALTER TABLE public.creators
- ADD CONSTRAINT uq_creators_name UNIQUE (name);
+--ALTER TABLE public.creators
+-- ADD CONSTRAINT uq_creators_name UNIQUE (name);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_creators_name_idx
+  ON public.creators(name);
 
 CREATE INDEX IF NOT EXISTS idx_creators_name
   ON public.creators (lower(name));
@@ -61,4 +66,8 @@ CREATE TABLE IF NOT EXISTS public.comic_creators (
   FOREIGN KEY (creator_id) REFERENCES public.creators(creator_id)
 );
 
+--CREATE INDEX IF NOT EXISTS idx_cc_creator ON public.comic_creators(creator_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_cc_comic_creator_role
+  ON public.comic_creators(comic_id, creator_id, role_on_issue);
 CREATE INDEX IF NOT EXISTS idx_cc_creator ON public.comic_creators(creator_id);
