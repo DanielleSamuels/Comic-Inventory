@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-server
+  cloud:
+    gateway:
+      routes:
+        - id: library
+          uri: lb://LIBRARY-SERVICE
+          predicates: [ Path=/library/** ]
+          filters:   [ StripPrefix=1 ]
+        - id: stock
+          uri: lb://STOCK-SERVICE
+          predicates: [ Path=/stock/** ]
+          filters:   [ StripPrefix=1 ]
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka-server:8070/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,refresh,gateway
+  endpoint:
+    health:
+      show-details: never

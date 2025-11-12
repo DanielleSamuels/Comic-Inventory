@@ -51,6 +51,35 @@ services:
       timeout: "3s"
       retries: 30
 
+  gateway-server:
+    build:
+      context: ../gateway-server
+      dockerfile: Dockerfile
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
+      SPRING_CLOUD_CONFIG_ALLOW_OVERRIDE: "true"
+      SPRING_CLOUD_CONFIG_OVERRIDE_NONE: "true"
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,env,gateway"
+      MANAGEMENT_ENDPOINT_GATEWAY_ENABLED: "true"
+      JAVA_TOOL_OPTIONS: >-
+        -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport
+        -Deureka.client.serviceUrl.defaultZone=http://eureka-server:8070/eureka/
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CONFIG: DEBUG
+      LOGGING_LEVEL_COM_NETFLIX_DISCOVERY: DEBUG
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
+      interval: "5s"
+      timeout: "3s"
+      retries: 30
+
   library-service:
     build:
       context: ../library-service
