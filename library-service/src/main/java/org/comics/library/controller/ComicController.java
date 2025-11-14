@@ -14,6 +14,7 @@ import org.comics.library.service.SeriesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -38,6 +39,7 @@ public class ComicController {
     ComicCreatorRepository comicCreatorRepo;
 
     // GET
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @RequestMapping(method = RequestMethod.GET)
     public List<ComicDTO> getAllComics() {
         List<ComicDTO> comicDTOList = comicService.listComicToListDTO(comicService.getAllComics());
@@ -47,6 +49,7 @@ public class ComicController {
         return comicDTOList;
     }
 
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @RequestMapping(value="/{comicId}", method = RequestMethod.GET)
     public ResponseEntity<ComicDTO> getComicById(@PathVariable("comicId") Long comicId) {
         Optional<Comic> comicOpt = comicService.getComicById(comicId);
@@ -60,6 +63,7 @@ public class ComicController {
     }
 
     // POST/add
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ComicDTO> addComic(@RequestBody ComicRequest comicRequest) {
         // add series
@@ -82,6 +86,7 @@ public class ComicController {
         return ResponseEntity.ok(new ComicDTO(comicService.addComicRequest(comicRequest, series, variantArtist)));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("{comicId}/credit/{creatorId}/role/{role}")
     ResponseEntity<String> addCredit(@PathVariable("comicId") Long comicId, @PathVariable("creatorId") Long creatorId, @PathVariable("role") String role) {
         Optional<Comic> comicOpt = comicService.getComicObj(comicId);
@@ -107,6 +112,7 @@ public class ComicController {
 
 
     // PUT/update
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(value="/{comicId}")
     public ResponseEntity<ComicDTO> updateComic(@PathVariable("comicId") Long comicId, @RequestBody ComicRequest comicRequest) {
 
@@ -137,6 +143,7 @@ public class ComicController {
     }
 
     // DELETE
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping(value="/{comicId}")
     public ResponseEntity<String> deleteComic(@PathVariable("comicId") Long comicId) {
         if(!comicService.deleteComic(comicId)) {

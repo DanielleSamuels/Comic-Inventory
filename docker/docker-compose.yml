@@ -1,5 +1,17 @@
 version: "3.9"
 
+x-health-wget: &health_wget
+  interval: 5s
+  timeout: 3s
+  retries: 40
+  start_period: 40s
+x-jvm: &jvm
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport
+
+volumes:
+  dbdata:
+  kcdb:
+
 services:
   db:
     image: postgres:16
@@ -12,22 +24,41 @@ services:
       - ${DB_VOLUME:-/var/lib/postgresql/data}  #prod/persistent = $env:DB_VOLUME="dbdata:/var/lib/postgresql/data"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 3s
-      retries: 40
-      start_period: 40s
+      <<: *health_wget
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --http-port=8085 --hostname-strict=false
+    environment:
+      KEYCLOAK_ADMIN: ${KC_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+      KC_HOSTNAME: keycloak
+      KC_HOSTNAME_PORT: 8085
+      KC_HOSTNAME_URL: http://keycloak:8085
+    ports:
+      - "8085:8085"
+
+
+  maildev:
+    image: maildev/maildev:latest
+    ports:
+      - "1080:1080"        # UI
+      - "1025:1025"        # SMTP
+
 
   config-server:
     build:
       context: ../config-server
       dockerfile: Dockerfile
+    environment:
+      <<: *jvm
     ports:
       - "8089:8089"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8089/actuator/health"]
-      interval: "5s"
-      timeout: "3s"
-      retries: 30
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8089/actuator/health" ]
+      <<: *health_wget
+
+
   eureka-server:
     build:
       context: ../eureka-server
@@ -36,70 +67,59 @@ services:
       config-server:
         condition: service_healthy
     environment:
+      <<: *jvm
       SPRING_APPLICATION_NAME: eureka-server
-      SPRING_PROFILES_ACTIVE: dev
-      #SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8089"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
       EUREKA_CLIENT_FETCH_REGISTRY: "false"
       SERVER_PORT: "8070"
-      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CONFIG: DEBUG
     ports:
       - "8070:8070"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8070/actuator/health"]
-      interval: "5s"
-      timeout: "3s"
-      retries: 30
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8070/actuator/health" ]
+      <<: *health_wget
+
 
   gateway-server:
     build:
       context: ../gateway-server
       dockerfile: Dockerfile
     depends_on:
-      config-server:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
+      config-server: { condition: service_healthy }
+      eureka-server: { condition: service_healthy }
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      <<: *jvm
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
-      SPRING_CLOUD_CONFIG_ALLOW_OVERRIDE: "true"
-      SPRING_CLOUD_CONFIG_OVERRIDE_NONE: "true"
-      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,env,gateway"
-      MANAGEMENT_ENDPOINT_GATEWAY_ENABLED: "true"
-      JAVA_TOOL_OPTIONS: >-
-        -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport
-        -Deureka.client.serviceUrl.defaultZone=http://eureka-server:8070/eureka/
-      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CONFIG: DEBUG
-      LOGGING_LEVEL_COM_NETFLIX_DISCOVERY: DEBUG
+      #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID: gateway
+      #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:-changeme}
+      #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_AUTHORIZATION_GRANT_TYPE: authorization_code
+      #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_SCOPE: openid,profile,email,roles
+      #SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER-URI: http://keycloak:8085/realms/comic-inventory
+
     ports:
       - "8080:8080"
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health" ]
-      interval: "5s"
-      timeout: "3s"
-      retries: 30
+      <<: *health_wget
+
 
   library-service:
     build:
       context: ../library-service
-      dockerfile: Dockerfile
     depends_on:
-      config-server:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
+      config-server: { condition: service_healthy }
+      eureka-server: { condition: service_healthy }
+      db: { condition: service_healthy }
     environment:
+      <<: *jvm
       SPRING_APPLICATION_NAME: library-service
-      SPRING_PROFILES_ACTIVE: dev
-      #SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8089"
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8070/eureka/"
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/app_dev"
-      SPRING_DATASOURCE_USERNAME: "postgres"
-      SPRING_DATASOURCE_PASSWORD: "pass"
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app_dev
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8085/realms/comic-inventory
     deploy:
       resources:
         limits:
@@ -107,34 +127,26 @@ services:
     ports:
       - "8081:8080"
 
+
   stock-service:
     build:
       context: ../stock-service
-      dockerfile: Dockerfile
     depends_on:
-      config-server:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-      db:
-        condition: service_healthy
+      config-server: { condition: service_healthy }
+      eureka-server: { condition: service_healthy }
+      db: { condition: service_healthy }
     environment:
+      <<: *jvm
       SPRING_APPLICATION_NAME: stock-service
-      SPRING_PROFILES_ACTIVE: dev
-      #SPRING_CONFIG_IMPORT: "optional:configserver:http://config-server:8089"
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8070/eureka/"
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/app_dev"
-      SPRING_DATASOURCE_USERNAME: "postgres"
-      SPRING_DATASOURCE_PASSWORD: "pass"
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=60 -XX:+UseContainerSupport"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app_dev
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8085/realms/comic-inventory
     deploy:
       resources:
         limits:
           memory: 768m
     ports:
       - "8082:8080"
-
-volumes:
-  dbdata:
-
-

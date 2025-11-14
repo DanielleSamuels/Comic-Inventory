@@ -8,6 +8,7 @@ import org.comics.library.service.SeriesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class SeriesController {
     MessageSource messages;
 
     // GET
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @RequestMapping(method = RequestMethod.GET)
     public List<SeriesDTO> getAllSeries() {
         List<SeriesDTO> seriesDTOList = seriesService.listSeriesToListDTO(seriesService.getAllSeries());
@@ -33,6 +35,7 @@ public class SeriesController {
         return seriesDTOList;
     }
 
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @RequestMapping(value="/{seriesId}", method = RequestMethod.GET)
     public ResponseEntity<SeriesDTO> getSeriesById(@PathVariable("seriesId") Long seriesId) {
         Optional<Series> seriesOpt = seriesService.getSeriesById(seriesId);
@@ -46,6 +49,7 @@ public class SeriesController {
     }
 
     // POST/add
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<SeriesDTO> addSeries(@RequestBody Series series) {
         if(seriesService.seriesExists(series)) {
@@ -57,6 +61,7 @@ public class SeriesController {
     }
 
     // PUT/update
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping
     public ResponseEntity<SeriesDTO> updateSeries(@RequestBody Series series) {
         SeriesDTO seriesDTO = seriesService.getSeriesDTO(series);
@@ -65,6 +70,7 @@ public class SeriesController {
     }
 
     // DELETE
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping(value="/{seriesId}")
     public ResponseEntity<String> deleteSeries(@PathVariable("seriesId") Long seriesId) {
         if(seriesService.hasComics(seriesId)) {

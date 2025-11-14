@@ -9,6 +9,7 @@ import org.comics.stock.service.StockUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class StockUpdateController {
     MessageSource messages;
 
     // GET
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @RequestMapping(method = RequestMethod.GET)
     public List<StockUpdateDTO> getAllStockUpdates() {
         List<StockUpdateDTO> stockUpdateDTOList = stockUpdateService.listStockUpdateToListDTO(stockUpdateService.getAllStockUpdates());
@@ -36,6 +38,7 @@ public class StockUpdateController {
         return stockUpdateDTOList;
     }
 
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @RequestMapping(value="/{stockUpdateId}", method = RequestMethod.GET)
     public ResponseEntity<StockUpdateDTO> getStockUpdateById(@PathVariable("stockUpdateId") Long stockUpdateId) {
         Optional<StockUpdate> stockUpdateOpt = stockUpdateService.getStockUpdateById(stockUpdateId);
@@ -48,6 +51,7 @@ public class StockUpdateController {
     }
 
     // POST/add
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<String> addStockUpdate(@RequestBody StockUpdateCreateRequest stockUpdateCreateRequest) {
         if(stockItemService.itemExists(stockUpdateCreateRequest.getStockItemId())) {
@@ -62,6 +66,7 @@ public class StockUpdateController {
     }
 
     // PUT/update
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(value="/{stockUpdateId}")
     public ResponseEntity<StockUpdateDTO> updateStockUpdate(@PathVariable("stockUpdateId") Long stockUpdateId, @RequestBody StockUpdateModificationRequest newStockUpdateModReq) {
         Optional<StockUpdate> oldStockUpdateOpt = stockUpdateService.getStockUpdateById(stockUpdateId);
@@ -73,6 +78,7 @@ public class StockUpdateController {
     }
 
     // DELETE
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping(value="/{stockUpdateId}")
     public ResponseEntity<String> deleteStockUpdate(@PathVariable("stockUpdateId") Long stockUpdateId) {
         if(!stockUpdateService.deleteStockUpdate(stockUpdateId)) {
