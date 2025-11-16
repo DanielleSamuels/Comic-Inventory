@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/item")
+@RequestMapping("/v1/item")
 public class StockItemController {
     @Autowired
     StockItemService stockItemService;
@@ -36,6 +36,17 @@ public class StockItemController {
         }
         return ResponseEntity.ok(stockItem);
     }
+
+    //@PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @RequestMapping(value="/comic/{comicId}", method = RequestMethod.GET)
+    public ResponseEntity<List<StockItem>> getStockItemsByComicId(@PathVariable Long comicId) {
+        List<StockItem> stockItems = stockItemService.getStockItemsByComicId(comicId);
+        if(stockItems == null || stockItems.isEmpty()) {
+            throw new IllegalArgumentException(String.format(messages.getMessage("stock-item.getComic.error.message", null, null)));
+        }
+        return ResponseEntity.ok(stockItems);
+    }
+
 
     // POST/add
     @PreAuthorize("hasRole('ADMIN')")

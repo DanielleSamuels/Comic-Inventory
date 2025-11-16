@@ -10,3 +10,28 @@ spring:
         initial-interval: 1000
         multiplier: 1.5
         max-interval: 5000
+resilience4j:
+  circuitbreaker:
+    instances:
+      stockService:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        recordExceptions:
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+  retry:
+    instances:
+      stockServiceRetry:
+        maxRetryAttempts: 3
+        waitDuration: 200ms
+        retryExceptions:
+          - java.util.concurrent.TimeoutException
+  bulkhead:
+    instances:
+      stockServiceBulkhead:
+        maxConcurrentCalls: 20
+        maxWaitDuration: 10ms

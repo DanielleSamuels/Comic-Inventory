@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(value = "/series")
+@RequestMapping(value = "/v1/series")
 public class SeriesController {
     @Autowired
     SeriesService seriesService;

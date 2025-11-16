@@ -17,7 +17,6 @@ public class StockItemService {
 
     // Add
     public StockItem addStockItem(StockItem stockItem) {
-
         return stockItemRepo.save(stockItem);
     }
 
@@ -40,6 +39,8 @@ public class StockItemService {
     public List<StockItem> getAllStockItems() { return stockItemRepo.findAll(); }
 
     public Optional<StockItem> getStockItemById(Long id) { return stockItemRepo.findById(id); }
+
+    public List<StockItem> getStockItemsByComicId(Long comicId) { return stockItemRepo.findByComicId(comicId); }
 
     // Update
     public StockItem updateStockItem(StockItem stockItem) { return stockItemRepo.save(stockItem); }

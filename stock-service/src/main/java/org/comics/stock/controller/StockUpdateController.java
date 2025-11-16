@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(value="/update")
+@RequestMapping(value="/v1/update")
 public class StockUpdateController {
     @Autowired
     StockUpdateService stockUpdateService;

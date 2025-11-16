@@ -5,9 +5,11 @@ import org.comics.library.model.ComicCreator;
 import org.comics.library.model.Creator;
 import org.comics.library.model.Series;
 import org.comics.library.model.dto.ComicDTO;
+import org.comics.library.model.dto.ComicInventoryDTO;
 import org.comics.library.model.dto.ComicRequest;
 import org.comics.library.model.utils.Response;
 import org.comics.library.repo.ComicCreatorRepository;
+import org.comics.library.service.ComicInventoryService;
 import org.comics.library.service.ComicService;
 import org.comics.library.service.CreatorService;
 import org.comics.library.service.SeriesService;
@@ -21,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(value="/comics")
+@RequestMapping(value="/v1/comics")
 public class ComicController {
     @Autowired
     ComicService comicService;
@@ -31,6 +33,9 @@ public class ComicController {
 
     @Autowired
     SeriesService seriesService;
+
+    @Autowired
+    ComicInventoryService comicInventoryService;
 
     @Autowired
     MessageSource messages;
@@ -60,6 +65,12 @@ public class ComicController {
 
         ComicDTO comicDTO = new ComicDTO(comic);
         return ResponseEntity.ok(comicDTO);
+    }
+
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @RequestMapping(value="/{comicId}/items", method = RequestMethod.GET)
+    public ResponseEntity<ComicInventoryDTO> getComicInventory(@PathVariable Long comicId) {
+        return ResponseEntity.ok(comicInventoryService.getComicInventory(comicId));
     }
 
     // POST/add
