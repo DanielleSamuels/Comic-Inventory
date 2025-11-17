@@ -67,8 +67,9 @@ public class StockUpdateController {
 
     // PUT/update
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping(value="/{stockUpdateId}")
-    public ResponseEntity<StockUpdateDTO> updateStockUpdate(@PathVariable("stockUpdateId") Long stockUpdateId, @RequestBody StockUpdateModificationRequest newStockUpdateModReq) {
+    @PutMapping
+    public ResponseEntity<StockUpdateDTO> updateStockUpdate(@RequestBody StockUpdateModificationRequest newStockUpdateModReq) {
+        Long stockUpdateId = newStockUpdateModReq.getStockUpdateId();
         Optional<StockUpdate> oldStockUpdateOpt = stockUpdateService.getStockUpdateById(stockUpdateId);
         StockUpdate oldStockUpdate = oldStockUpdateOpt.orElseThrow(
                 () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "stock update", stockUpdateId))

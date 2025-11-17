@@ -13,8 +13,6 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import java.util.Locale;
 
 @EnableFeignClients(basePackages = "org.comics.library.service.client")
-@EnableDiscoveryClient
-@EnableEurekaClient
 @SpringBootApplication
 @RefreshScope
 public class LibraryServiceApplication {

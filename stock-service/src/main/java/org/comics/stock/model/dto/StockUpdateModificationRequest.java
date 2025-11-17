@@ -7,6 +7,7 @@ import org.comics.stock.model.UpdateType;
 // for StockUpdate updates
 @Getter @Setter
 public class StockUpdateModificationRequest {
+    private Long stockUpdateId;
     private UpdateType updateType;
     private String updateNotes;
 }

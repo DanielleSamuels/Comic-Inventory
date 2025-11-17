@@ -1,7 +1,8 @@
 package org.comics.stock.controller;
 
 import org.comics.stock.model.StockItem;
-import org.comics.stock.model.dto.StockItemAddRequest;
+import org.comics.stock.model.dto.StockItemCreateRequest;
+import org.comics.stock.model.dto.StockItemModificationRequest;
 import org.comics.stock.service.StockItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -37,7 +38,7 @@ public class StockItemController {
         return ResponseEntity.ok(stockItem);
     }
 
-    //@PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @RequestMapping(value="/comic/{comicId}", method = RequestMethod.GET)
     public ResponseEntity<List<StockItem>> getStockItemsByComicId(@PathVariable Long comicId) {
         List<StockItem> stockItems = stockItemService.getStockItemsByComicId(comicId);
@@ -51,15 +52,22 @@ public class StockItemController {
     // POST/add
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<StockItem> addStockItem(@RequestBody StockItemAddRequest stockItemRequest) {
+    public ResponseEntity<StockItem> addStockItem(@RequestBody StockItemCreateRequest stockItemRequest) {
         return ResponseEntity.ok(stockItemService.addStockItemRequest(stockItemRequest));
     }
 
     // PUT/update
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping
-    public ResponseEntity<StockItem> updateStockItem(@RequestBody StockItem stockItem) {
-        return ResponseEntity.ok(stockItemService.updateStockItem(stockItem));
+    public ResponseEntity<StockItem> updateStockItem(@RequestBody StockItemModificationRequest stockItemRequest) {
+        Long stockItemId = stockItemRequest.getStockItemId();
+
+        Optional<StockItem> stockItemOpt = stockItemService.getStockItemById(stockItemId);
+        StockItem stockItem = stockItemOpt.orElseThrow(
+                () -> new IllegalArgumentException(String.format(messages.getMessage("general.get.error.message", null, null), "stock item", stockItemId))
+        );
+
+        return ResponseEntity.ok(stockItemService.updateStockItem(stockItem, stockItemRequest));
     }
 
     // DELETE

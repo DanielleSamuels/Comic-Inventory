@@ -6,7 +6,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Getter @Setter
-public class StockItemAddRequest {
+public class StockItemCreateRequest {
     private Long comicId;
     private Integer numInStock;
     private Integer numOrdered;

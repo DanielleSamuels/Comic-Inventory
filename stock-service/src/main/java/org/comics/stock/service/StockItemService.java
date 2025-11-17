@@ -1,7 +1,8 @@
 package org.comics.stock.service;
 
 import org.comics.stock.model.StockItem;
-import org.comics.stock.model.dto.StockItemAddRequest;
+import org.comics.stock.model.dto.StockItemCreateRequest;
+import org.comics.stock.model.dto.StockItemModificationRequest;
 import org.comics.stock.repo.StockItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class StockItemService {
         return stockItemRepo.save(stockItem);
     }
 
-    public StockItem addStockItemRequest(StockItemAddRequest stockItemRequest) {
+    public StockItem addStockItemRequest(StockItemCreateRequest stockItemRequest) {
         StockItem stockItem = new StockItem();
         stockItem.setComicId(stockItemRequest.getComicId());
         stockItem.setNumInStock(stockItemRequest.getNumInStock());
@@ -43,7 +44,16 @@ public class StockItemService {
     public List<StockItem> getStockItemsByComicId(Long comicId) { return stockItemRepo.findByComicId(comicId); }
 
     // Update
-    public StockItem updateStockItem(StockItem stockItem) { return stockItemRepo.save(stockItem); }
+    public StockItem updateStockItem(StockItem stockItem, StockItemModificationRequest stockItemRequest) {
+        stockItem.setComicId(stockItemRequest.getComicId());
+        stockItem.setNumOrdered(stockItemRequest.getNumOrdered());
+        stockItem.setNumReserved(stockItemRequest.getNumReserved());
+        stockItem.setListPrice(stockItemRequest.getListPrice());
+        stockItem.setForSale(stockItemRequest.getForSale());
+        stockItem.setItemNotes(stockItemRequest.getItemNotes());
+
+        return stockItemRepo.save(stockItem);
+    }
 
     // Delete
     public Boolean deleteStockItem(Long id) {
