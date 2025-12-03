@@ -1,11 +1,13 @@
 package org.comics.library.service;
 
+import org.comics.library.events.source.SimpleSourceBean;
 import org.comics.library.model.Comic;
 import org.comics.library.model.Creator;
 import org.comics.library.model.Series;
 import org.comics.library.model.dto.ComicDTO;
 import org.comics.library.model.dto.ComicRequest;
 import org.comics.library.model.dto.SeriesDTO;
+import org.comics.library.model.utils.ChangeAction;
 import org.comics.library.repo.ComicRepository;
 import org.comics.library.repo.CreatorRepository;
 import org.comics.library.repo.SeriesRepository;
@@ -23,9 +25,14 @@ public class ComicService {
     @Autowired
     ComicRepository comicRepo;
 
+    @Autowired
+    SimpleSourceBean simpleSourceBean;
+
     // Add
     public Comic addComic(Comic comic) {
-        return comicRepo.save(comic);
+        comicRepo.save(comic);
+        simpleSourceBean.publishLibraryChange(ChangeAction.CREATED, comic);
+        return comic;
     }
 
     public Comic addComicRequest(ComicRequest comicRequest, Series series, Creator variantArtist) {
@@ -53,6 +60,11 @@ public class ComicService {
     public Optional<Comic> getComicById(Long id) { return comicRepo.findById(id); }
 
     // Update
+    public Comic updateComic(Comic comic) {
+        simpleSourceBean.publishLibraryChange(ChangeAction.UPDATED, comic);
+        return comicRepo.save(comic);
+    }
+
     public Comic updateComicRequest(ComicRequest comicRequest, Series series, Creator variantArtist, Comic comic) {
         comic.setSeries(series);
         comic.setTitle(comicRequest.getTitle());
@@ -68,7 +80,7 @@ public class ComicService {
         comic.setIsIncentive(comicRequest.getIsIncentive());
         comic.setIncentiveRatio(comicRequest.getIncentiveRatio());
 
-        return comicRepo.save(comic);
+        return updateComic(comic);
     }
 
     // Delete
@@ -76,7 +88,9 @@ public class ComicService {
         if (!comicRepo.existsById(id)) {
             return false;
         }
+
         comicRepo.deleteById(id);
+        simpleSourceBean.publishLibraryChange(ChangeAction.DELETED, comicRepo.findById(id).get());
         return true;
     }
 
