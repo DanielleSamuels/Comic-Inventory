@@ -18,7 +18,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: pass
-      POSTGRES_DB: app_${SPRING_PROFILES_ACTIVE:-dev}
+      POSTGRES_DB: app_demo
     volumes:
       - ./docker/init:/docker-entrypoint-initdb.d:ro
       - ${DB_VOLUME:-/var/lib/postgresql/data}  #prod/persistent = $env:DB_VOLUME="dbdata:/var/lib/postgresql/data"
@@ -26,17 +26,14 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       <<: *health_wget
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.0
-    command: start-dev --http-port=8085 --hostname-strict=false
-    environment:
-      KEYCLOAK_ADMIN: ${KC_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
-      KC_HOSTNAME: keycloak
-      KC_HOSTNAME_PORT: 8085
-      KC_HOSTNAME_URL: http://keycloak:8085
-    ports:
-      - "8085:8085"
+  #  keycloak:
+  #    image: quay.io/keycloak/keycloak:26.0
+  #    command: start-dev --http-port=8085 --hostname-strict=false
+  #    environment:
+  #      KEYCLOAK_ADMIN: ${KC_ADMIN:-admin}
+  #      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+  #    ports:
+  #      - "8085:8085"
 
 
   maildev:
@@ -65,7 +62,7 @@ services:
     environment:
       <<: *jvm
       SPRING_APPLICATION_NAME: eureka-server
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_PROFILES_ACTIVE: demo
       EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
       EUREKA_CLIENT_FETCH_REGISTRY: "false"
       SERVER_PORT: "8070"
@@ -83,7 +80,7 @@ services:
       eureka-server: { condition: service_healthy }
     environment:
       <<: *jvm
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_PROFILES_ACTIVE: demo
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
       #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID: gateway
       #SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ${GATEWAY_CLIENT_SECRET:-changeme}
@@ -133,12 +130,12 @@ services:
     environment:
       <<: *jvm
       SPRING_APPLICATION_NAME: library-service
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_PROFILES_ACTIVE: demo
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app_dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app_demo
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8085/realms/comic-inventory
+    #     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://18.217.37.134:8085/realms/comic-inventory
     deploy:
       resources:
         limits:
@@ -157,15 +154,16 @@ services:
     environment:
       <<: *jvm
       SPRING_APPLICATION_NAME: stock-service
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_PROFILES_ACTIVE: demo
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app_dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app_demo
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8085/realms/comic-inventory
+    #    SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://18.217.37.134:8085/realms/comic-inventory
     deploy:
       resources:
         limits:
           memory: 768m
     ports:
       - "8082:8080"
+
